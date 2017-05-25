@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Train Schedule</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <br>
+        <div class="jumbotron" style="background-color: #8a513b">
+            <h1 class="text-center" style="color: #f5f5f5">Anytime is Train Time</h1>
+            <p class="text-center" style="color: #f5f5f5">Choo Choo, Woo Woo!</p>
+        </div>
+        <br>
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading" style="background-color: #337ab7">
+                    <div class="bg-primary text-white" <h3 class="panel-title">Current Train Schedule</h3>
+                    </div>
+                </div>
+                <!-- Table -->
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="trainName">Train Name</th>
+                            <th class="destination">Destination</th>
+                            <th class="frequency">Frequency (min)</th>
+                            <th class="nextArrival">Next Arrival</th>
+                            <th class="minAway">Minutes Away</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <br>
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading" style="background-color: #337ab7">
+                    <div class="bg-primary text-white" <h3 class="panel-title">Add Train</h3>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <!-- Sign-up Form (note the various input "types")-->
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="trainName-input">Train Name:</label>
+                            <input class="form-control" id="trainName-input" type="text">
+                        </div>
+                        <div class="form-group">
+                            <label for="destination-input">Destination:</label>
+                            <input class="form-control" id="destination-input" type="text">
+                        </div>
+                        <div class="form-group">
+                            <label for="firstTrainTime-input">First Train Time (HH:mm - military time)</label>
+                            <input class="form-control" id="firstTrainTime-input" type="text">
+                        </div>
+                        <div class="form-group">
+                            <label for="frequency-input">Frequency (min)</label>
+                            <input class="form-control" id="frequency-input" rows="5"></input>
+                        </div>
+                        <button class="btn btn-primary" id="add-info" type="submit">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+    <script>
+    // Initialize Firebase
+    var config = {
+        apiKey: "AIzaSyAakgjIKH1Q__s20aOoJ5jOQ5F7EaZ15vw",
+        authDomain: "train-scheduler-132e2.firebaseapp.com",
+        databaseURL: "https://train-scheduler-132e2.firebaseio.com",
+        projectId: "train-scheduler-132e2",
+        storageBucket: "train-scheduler-132e2.appspot.com",
+        messagingSenderId: "1009220300622"
+    };
+    firebase.initializeApp(config);
+    var database = firebase.database();
+
+
+    // var trainName = "";
+    // var destination = "";
+    //var firstTrainTime = "";
+    // var frequency = "";
+    var currentTime = moment();
+    // var difInTime = moment() % frequency;
+
+
+    $("#add-info").on("click", function(event) {
+        event.preventDefault();
+        trainName = $("#trainName-input").val().trim();
+        destination = $("#destination-input").val().trim();
+        frequency = $("#frequency-input").val().trim();
+        firstTrainTime = $("#firstTrainTime-input").val().trim();
+        difInTime = moment() % frequency;
+        minAway = frequency - difInTime;
+        arrival = moment().diff(minAway);
+        nextArrival = moment(arrival).format("HH:mm");
+        
+        console.log("dif in time: " + difInTime);
+        console.log("frequency: " + frequency);
+        console.log("Next arrival: " + nextArrival);
+        console.log("min Away: " + minAway);
+        $("#trainName-display").html(trainName);
+        $("#destination-display").html(destination);
+        $("#frequency-display").html(frequency);
+        $("#minAway-display").html(minAway);
+        $("#nextArrival-display").html(nextArrival);
+
+        database.ref().push({
+            trainName: trainName,
+            destination: destination,
+            frequency: frequency,
+            nextArrival: nextArrival,
+            minAway: minAway
+
+        });
+        $("#trainName-input, #destination-input, #firstTrainTime-input, #frequency-input").val("");
+        console.log("CURRENT TIME: " + moment(currentTime).format("hh:mm"));
+    });
+    database.ref().on("child_added", function(snapshot) {
+        console.log(snapshot.val().trainName);
+        $(".table").append("<tr><td id='trainName'>" + snapshot.val().trainName + "</td><td id = 'destination'>" + snapshot.val().destination + "</td><td id = 'frequency'>" + snapshot.val().frequency + "</td><td id = 'nextArrival'>" + snapshot.val().nextArrival + "</td><td id = 'minAway'>" + snapshot.val().minAway + "</td></tr>");
+    }, function(errorObject) {
+        console.log("errors handled" + errorObject.code)
+    });
+    // document.write(moment().format("MM/DD/YY hh:mm"))
+    </script>
+</body>
+
+</html>
